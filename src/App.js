@@ -1,24 +1,33 @@
-import logo from './logo.svg';
-import './App.css';
+import HomePage from "./components/home/HomePage";
+import MenuPizza from "./components/menu/MenuPizza";
+import NavBar from "./components/navbar/NavBar";
+import {
+  BrowserRouter as Router,
+  Switch,
+  Route,
+  Link,
+  Routes
+} from "react-router-dom";
+import Cart from "./components/cart/Cart";
+import Orders from "./components/orders/Orders";
+import AppState from "./context/AppState";
+
 
 function App() {
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+    <Router>
+      <div className="App">
+        <AppState>
+          <NavBar />
+          <Routes>
+            <Route path="/" element={<HomePage />} />
+            <Route path="/orders" element={<Orders />} />
+            <Route path="/menu" element={<MenuPizza />} />
+            <Route path="/cart" element={<Cart />} />
+          </Routes>
+        </AppState>
+      </div>
+    </Router>
   );
 }
 

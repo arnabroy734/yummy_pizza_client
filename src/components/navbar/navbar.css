@@ -1,0 +1,38 @@
+.menu-item-lg {
+    @apply self-center text-base font-bold cursor-pointer hover:text-color2 lg:py-0;
+}
+.menu-item {
+    @apply py-4;
+}
+
+
+.menubar {
+    @apply absolute left-0 top-[89px] bg-white w-full pl-4;
+}
+
+.menubar-lg {
+    @apply lg:visible lg:flex lg:space-x-8 lg:static;
+}
+
+
+.logo {
+    @apply cursor-pointer h-[50px] self-center;
+}
+
+
+.navbar-lg{
+    @apply flex justify-between lg:px-28 py-4;
+}
+.navbar {
+    @apply px-4 absolute top-0 sticky bg-white;
+}
+
+.cart {
+    @apply bg-color2 flex p-2 rounded-3xl my-2 px-4 mx-4 cursor-pointer;
+}
+.cart span {
+    @apply text-white mr-2 font-bold;
+}
+.hamburger {
+    @apply w-[32px] cursor-pointer lg:hidden;
+}

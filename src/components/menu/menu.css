@@ -1,0 +1,11 @@
+.pizza-types  li {
+    @apply text-base cursor-pointer font-bold p-2;
+    
+}
+
+.pizza-types li.active {
+    @apply text-color2 underline underline-offset-4 decoration-2;
+}
+.pizza-types {
+    @apply  w-full px-4 md:w-3/4 lg:w-1/2 flex justify-around sm:justify-between mx-auto flex-wrap mt-10;
+}
