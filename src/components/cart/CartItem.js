@@ -19,6 +19,7 @@ export default function CartItem(props) {
         })
     }
 
+
     function deleteCartItem(event) {
         dispatch (
             {
