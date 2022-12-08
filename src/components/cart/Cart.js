@@ -1,4 +1,4 @@
-import { useState, useContext } from "react";
+import { useState, useContext, useEffect } from "react";
 import { Link } from "react-router-dom";
 import cartEmpty from "./empty-cart.png";
 import cartBlack from "./cart-black.png";
@@ -6,46 +6,79 @@ import vegpizzas from "../../temp_data/vegpizzas";
 import CartItem from "./CartItem";
 import { CartContext } from "../../context/CartContext";
 import { OrderContext } from "../../context/OrderContext";
+import { deleteAllCartItemsRemote, getFromCart } from "../../network/syncCart";
+import { placeOrderRemote } from "../../network/syncOrder";
+import { Alert, Snackbar } from "@mui/material";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 
 
 export default function Cart() {
 
-    let { cartItems } = useContext(CartContext);
-    let { orderDispatch } = useContext(OrderContext);
+    const queryClient = useQueryClient();
+    let { cartItems, dispatch } = useContext(CartContext);
+    let [orderDetails, setOrderDetails] = useState({ address: "", phone: "" });
+    let [showSnack, setSnackVisibility] = useState({ success: false, error: false });
+    // let { orderDispatch } = useContext(OrderContext);
 
-    let [orderDetails, setOrderDetails] = useState({address: "", phone: ""});
+    function handleCloseSnack() {
+        setSnackVisibility({ success: false, error: false });
+    }
+
+    //Method to place order to remote
+    const orderMutation = useMutation(
+        {
+            mutationFn: placeOrderRemote,
+            onSuccess: (data, variables, context) => {
+                setSnackVisibility({ success: true });
+                deleteCartMutation.mutate();
+                queryClient.invalidateQueries({queryKey : ["openorders"]});
+            },
+            onError: (err, variables, context) => {
+                setSnackVisibility({ error: true });
+            }
+
+        }
+    )
+
+    //Method to delete all cart items after placing order
+    const deleteCartMutation = useMutation(
+        {
+            mutationFn: deleteAllCartItemsRemote,
+            onSuccess: (data, variables, context) => {
+                //Reset cart from local state
+                dispatch({ type: "RESET" });
+            }
+        }
+
+    );
 
     //function to place order
     function placeOrder() {
-        let order = {
-            id : "testId232323",
+        let orderToPlace = {
             orderTime: new Date(),
             phone: orderDetails.phone,
             address: orderDetails.address,
             orderPrice: cartItems.totalPrice,
             totalItems: cartItems.size,
             orderItems: Array.from(cartItems.items.values()),
-            orderStatus : 0
+            orderStatus: 1
         }
 
-        //Add to OrderState
-        orderDispatch (
-            {
-                type: "ADD",
-                value: order
-            }
-        );
+        //make call to server to place order
+        orderMutation.mutate(orderToPlace);
     }
 
+    
     //function to handle input
-    function changeOrderDetails(event){
-        let {id, value} = event.target;
+    function changeOrderDetails(event) {
+        let { id, value } = event.target;
 
         setOrderDetails((state) => {
-            return ({...state, [id]: value})
+            return ({ ...state, [id]: value })
         });
     }
+
 
 
 
@@ -74,9 +107,9 @@ export default function Cart() {
                 <hr className="w-[99%] mx-auto mt-4"></hr>
                 <ul className="ordered-items max-h-[55vh]  overflow-y-scroll">
                     {Array.from(cartItems.items.values()).map((cartItem, index) =>
-                        <li key={cartItem.id}>
+                        <li key={cartItem._id}>
                             <CartItem
-                                id={cartItem.id}
+                                id={cartItem._id}
                                 image={cartItem.image}
                                 name={cartItem.name}
                                 size={cartItem.size}
@@ -107,6 +140,27 @@ export default function Cart() {
                     <button className="bg-color2 text-white text-base rounded-2xl py-2 px-6 mt-4" onClick={placeOrder}>Place Order</button>
                 </div>
             </div>
+
+            <Snackbar //success snackbar
+                autoHideDuration={3000}
+                onClose={handleCloseSnack}
+                open={showSnack.success}
+                anchorOrigin={{ horizontal: "center", vertical: "bottom" }}>
+                <Alert severity="success">
+                    Order placed successfully
+                </Alert>
+            </Snackbar>
+
+            <Snackbar //failure snackbar
+                autoHideDuration={3000}
+                onClose={handleCloseSnack}
+                open={showSnack.error}
+                anchorOrigin={{ horizontal: "center", vertical: "bottom" }}>
+                <Alert severity="error">
+                    Order cannot be placed
+                </Alert>
+            </Snackbar>
+
         </div >
     );
 }

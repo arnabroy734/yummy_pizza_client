@@ -1,4 +1,5 @@
 import React, { useReducer } from "react";
+import { addToCartRemote, deleteCartItemRemote, getFromCart, updateCartItemRemote } from "../network/syncCart";
 
 export const CartContext = React.createContext();
 
@@ -8,7 +9,7 @@ export function cartReducer(cartItems, action) {
     //action.type: type of action
     //action.value: entire item object - item to be added 
     //action.qty: new quantity of an cart item
-    //action.id: id of the item to be deleted or modified
+    //action.id: _id of the item to be deleted or modified
 
     switch (action.type) {
         case "ADD":
@@ -16,7 +17,7 @@ export function cartReducer(cartItems, action) {
             let newItem = action.value;
 
             // If the item already exists, increase the qty
-            let itemExisitng = cartItems.items.get(newItem.id);
+            let itemExisitng = cartItems.items.get(newItem._id);
             if (itemExisitng) {
                 itemExisitng.qty += 1;
             }
@@ -24,7 +25,7 @@ export function cartReducer(cartItems, action) {
                 itemExisitng = newItem;
             }
 
-            cartItems.items.set(newItem.id, itemExisitng);
+            cartItems.items.set(newItem._id, itemExisitng);
 
             //Increase cart size by 1
             cartItems.size += 1;
@@ -43,7 +44,8 @@ export function cartReducer(cartItems, action) {
 
             cartItems.size += newQty - oldQty; // increase or decrease the size
 
-            cartItems.totalPrice += (newQty - oldQty)*cartItem.price; //Increase the total price
+            cartItems.totalPrice += (newQty - oldQty) * cartItem.price; //Increase the total price
+
             break;
 
         case "REMOVE": //remove item from cartItems and subtract the size
@@ -52,10 +54,37 @@ export function cartReducer(cartItems, action) {
 
             cartItems.size -= deletedQty;
 
-            cartItems.totalPrice -= deletedQty*deletedItem.price;
+            cartItems.totalPrice -= deletedQty * deletedItem.price;
 
             cartItems.items.delete(action.id);
+
+            
             break;
+
+        case "SYNC_FROM_REMOTE":
+            //Sync from remote cart data
+
+            //initialise the data
+            cartItems.items = new Map();
+            cartItems.size = 0;
+            cartItems.totalPrice = 0;
+            let remoteCartItems = action.value;
+
+            remoteCartItems.forEach((remoteCartItem) => {
+                cartItems.items.set(remoteCartItem._id, remoteCartItem); //map new item
+                cartItems.size += remoteCartItem.qty; //increase the size
+                cartItems.totalPrice += remoteCartItem.qty * remoteCartItem.price; //update total price
+            });
+
+            break;
+        case "RESET":
+            //reset the cart
+            cartItems.items = new Map();
+            cartItems.size = 0;
+            cartItems.totalPrice = 0;
+            break;
+
+
     }
 
 
@@ -66,20 +95,3 @@ export function cartReducer(cartItems, action) {
     };
 }
 
-// export default function CartState({ children }) {
-
-//     let [cartItems, dispatch] = useReducer(
-//         cartReducer,
-//         {
-//             items: new Map(),
-//             size: 0,
-//             totalPrice: 0
-//         }
-//     );
-
-//     return (
-//         <CartContext.Provider value={{ cartItems, dispatch }}>
-//             {children}
-//         </CartContext.Provider>
-//     );
-// }
