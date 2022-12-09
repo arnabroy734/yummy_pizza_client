@@ -1,8 +1,8 @@
-import vegpizzas from "../../temp_data/vegpizzas";
-import nonVegPizzas from "../../temp_data/non-veg";
-import chickenLovers from "../../temp_data/chicken-lovers";
 import { useContext, useState } from "react";
 import { CartContext } from "../../context/CartContext";
+import  { addToCartRemote } from "../../network/syncCart";
+import { Alert, Snackbar } from "@mui/material";
+
 
 export default function Pizza(props) {
 
@@ -12,6 +12,7 @@ export default function Pizza(props) {
     let [pizzasize, setSize] = useState(sizes[0]);
     let [price, setPrice] = useState(prices[pizzasize]);
     let { dispatch } = useContext(CartContext);
+    let [showSnack, setSnackVisibility] = useState(false);
 
     function selectSize(event) {
         const { value } = event.target;
@@ -19,23 +20,36 @@ export default function Pizza(props) {
         setPrice(prices[value]);
     }
 
-    function addToCart(){
+    function handleCloseSnack() {
+        setSnackVisibility(false);
+    }
+
+    function addToCart() {
 
         const orderItem = {
-            id: id+"_"+pizzasize,
-            image: image, 
+            _id: id + "_" + pizzasize,
+            image: image,
             name: name,
             size: pizzasize,
             price: price,
             qty: 1
         }
 
-        dispatch ( // Add new item to cart
+        dispatch( // Add new item to cart - update local state
             {
                 type: "ADD",
                 value: orderItem
             }
         );
+
+
+        //sync to remote server
+        addToCartRemote(orderItem)
+            .then((status) => {
+                setSnackVisibility(true);
+            }).catch((err) => {
+                console.log(err + " Occured : Cart item cannot be added");
+            });
     }
 
     return (
@@ -59,6 +73,16 @@ export default function Pizza(props) {
                     + Add
                 </button>
             </div>
+
+            <Snackbar
+                autoHideDuration={1000}
+                onClose={handleCloseSnack}
+                open={showSnack}
+                anchorOrigin={{ horizontal: "right", vertical: "top" }}>
+                <Alert severity="success">
+                    New item added to cart
+                </Alert>
+            </Snackbar>
         </div>
 
     );

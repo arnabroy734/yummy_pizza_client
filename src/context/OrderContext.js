@@ -9,18 +9,8 @@ export function orderReducer(orderItems, action){
             let newOrder = action.value;
             orderItems.push(newOrder);
             return [...orderItems]
+        case "RESET" : 
+            return [];
     }
 }
 
-// export default function OrderState({ children }) {
-
-//     let [orderItems, orderDispatch] = useReducer(
-//         orderReducer, []
-//     );
-
-//     return (
-//         <OrderContext.Provider value={{ orderItems, orderDispatch }}>
-//             {children}
-//         </OrderContext.Provider>
-//     );
-// }

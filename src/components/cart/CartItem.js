@@ -1,32 +1,53 @@
-import vegpizzas from "../../temp_data/vegpizzas";
 import { useContext, useState } from "react";
 import { CartContext } from "../../context/CartContext";
+import { deleteCartItemRemote, updateCartItemRemote } from "../../network/syncCart";
 
 
 export default function CartItem(props) {
 
     let { id, image, name, size, qty, price } = props;
     let [quantity, setQuantity] = useState(qty);
-    let {dispatch} = useContext(CartContext);
+    let { dispatch } = useContext(CartContext);
 
-    function qtyChange(event){
+    function qtyChange(event) {
         let { value } = event.target;
         setQuantity(value);
-        dispatch ({
+
+        dispatch({ //update local state
             type: "CHANGE_QTY",
             qty: value,
             id: id
         })
+
+        //sync to remote server
+        updateCartItemRemote(id, value)
+            .then((status) => {
+                console.log("Cart item updated : " + status);
+            })
+            .catch((err) => {
+                console.log("Cart item cannot be updated");
+            });
+
     }
 
 
     function deleteCartItem(event) {
-        dispatch (
+        dispatch( // update local state
             {
                 type: "REMOVE",
                 id: id
             }
         );
+
+        //sync to remote server
+        deleteCartItemRemote(id)
+            .then((status) => {
+                console.log("Cart item deleted : " + status);
+            })
+            .catch((err) => {
+                console.log("Cart item cannot be deleted" + err);
+            });
+
     }
 
     return (
@@ -60,7 +81,7 @@ export default function CartItem(props) {
                 </div>
             </div>
 
-            <span className="self-center font-extrabold w-1/6 text-right">&#8377; {qty*price}</span>
+            <span className="self-center font-extrabold w-1/6 text-right">&#8377; {qty * price}</span>
         </div>
     );
 }
