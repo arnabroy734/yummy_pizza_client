@@ -54,9 +54,9 @@ export async function getCloseOrdersRemote() {
     }
 }
 
-export async function getAllOrdersRemote() {
+export async function getAllOrdersOpenRemote() {
     try {
-        const response = await axios.get("/order/all", {withCredentials : true});
+        const response = await axios.get("/order/allopen", {withCredentials : true});
         if (response.status == 401) {
             throw Error("unauthorised");
         }
@@ -64,6 +64,7 @@ export async function getAllOrdersRemote() {
             throw Error ("something went wrong");
         }
         else if (response.status == 200 ) {
+            console.log(response.data);
             return response.data; //contains orders
         }
 
